@@ -21,8 +21,6 @@ if(min_bidding > max_spending){
 	throw new Error('Your opening bid cannot be more then your maximum bid.');
 }
 
-var bidding_increment = parseInt(1);
-
 var service_fee = parseInt(5);
 
 // TODO: Bid fully automated based on a list of urls and settings.
@@ -68,16 +66,19 @@ var service_fee = parseInt(5);
 
 		let biddings = [{
 			time: _timeToSeconds(document.getElementById('timeOfHighestBid').innerText),
+			name: document.getElementById('highestBidder').innerText,
 			amount: parseInt(document.getElementById('jsMainLotCurrentBid').innerText)
 		}];
 
 		document.querySelectorAll('.history-list-item').forEach(function(el){
 
-			let amount = el.querySelector('.bidhistory-bid').innerText.replace('€', '').trim();
 			let time = el.querySelector('.bidhistory-time').innerText.trim();
+			let name = el.querySelector('.bidhistory-name').innerText.trim();
+			let amount = parseInt(el.querySelector('.bidhistory-bid').innerText.replace('€', '').trim());
 
 			biddings.push({
 				time: _timeToSeconds(time),
+				name: name,
 				amount: amount,
 			})
 		});
@@ -160,25 +161,52 @@ var service_fee = parseInt(5);
 	 */
 	let _exceedsMaxBidding = function(amount){
 
-		return (amount + service_fee) > max_spending;
+		return amount > _getMaxBidding();
+	};
+
+	let _getMaxBidding = function(){
+
+		return max_spending - service_fee;
 	};
 
 	/**
 	 * Returns the bidding increment.
 	 * @returns {Number}
+	 * @private
 	 */
-	let getBiddingIncrement = function(){
+	let _getBiddingIncrement = function(){
 
-		return bidding_increment;
+		let inc;
+
+		// Take 5 percent of what you want to spend as an inc.
+		inc = Math.ceil(_getHighestBidding() * 0.05);
+
+		// Grab the nearest 5
+		inc = Math.floor(inc/5)*5;
+
+		// Increment should be minimum 1
+		if(inc < 1){
+
+			inc = 1;
+		}
+
+		// Are we close to the max bidding? Just Increment with the max
+		let max_increment = _getMaxBidding() - _getHighestBidding();
+		if(inc > max_increment){
+
+			inc = max_increment;
+		}
+
+		return inc;
 	};
 
 	/**
 	 * @returns {int}
 	 * @private
 	 */
-	let _getNewBidding = function(){
+	let _getNexSmartBid = function(){
 
-		let newBidding = _getHighestBidding() + getBiddingIncrement();
+		let newBidding = _getHighestBidding() + _getBiddingIncrement();
 
 		/*
 		Smart bidding.
@@ -213,11 +241,12 @@ var service_fee = parseInt(5);
 	 */
 	let _raise = function(amount){
 
-		let newBidding = amount || _getNewBidding();
+		let newBidding = amount || _getNexSmartBid();
+		let now = new Date();
 
 		if(cur_bidding !== newBidding){
 
-			console.log(`Raise € ${newBidding}`);
+			console.log(`${now.getHours()}:${now.getMinutes()}:${now.getSeconds()} Raise € ${newBidding}`);
 			cur_bidding = newBidding;
 		}
 
@@ -286,7 +315,7 @@ var service_fee = parseInt(5);
 			throw new Error('Bidding expired');
 		}
 
-		document.title = `${_getHighestBidding()}/${max_spending - service_fee} ${timeRemaining}; ${doc_title}`;
+		document.title = `${_getNexSmartBid()}/${max_spending - service_fee} ${timeRemaining}; ${doc_title}`;
 
 		_raise();
 
