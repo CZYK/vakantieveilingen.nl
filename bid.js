@@ -9,16 +9,16 @@ var username = localStorage.getItem('username');
 username = window.prompt('What is your username?', username) || username;
 localStorage.setItem('username', username);
 
-var max_bidding = localStorage.getItem('max') || 10;
+var max_spending = localStorage.getItem('max') || 10;
 
 var min_bidding = localStorage.getItem('min') || 0;
 min_bidding = window.prompt('What is your opening bid?', `${min_bidding}`) || min_bidding;
 localStorage.setItem('min', min_bidding);
 min_bidding = parseInt(min_bidding);
 
-if(min_bidding > max_bidding){
+if(min_bidding > max_spending){
 
-	throw new Error('Youre opening bid cannot be more then your maximum bid.');
+	throw new Error('Your opening bid cannot be more then your maximum bid.');
 }
 
 var bidding_increment = parseInt(1);
@@ -26,6 +26,8 @@ var bidding_increment = parseInt(1);
 var service_fee = parseInt(5);
 
 // TODO: Bid fully automated based on a list of urls and settings.
+// TODO: Monitor the auction and store historical data for analysis.
+// TODO: Just do an emotional bidding every now and then
 
 /**
  * Bookmarklets:
@@ -37,6 +39,7 @@ var service_fee = parseInt(5);
 	"use strict";
 
 	let doc_title = document.title;
+	let cur_bidding;
 
 	if(dry_run){
 
@@ -47,12 +50,12 @@ var service_fee = parseInt(5);
 
 		if(!max){
 
-			max = window.prompt('What do you want to spend?', `${max_bidding}`) || max_bidding;
+			max = window.prompt('What do you want to spend?', `${max_spending}`) || max_spending;
 			localStorage.setItem('max', max);
-			max_bidding = parseInt(max);
+			max_spending = parseInt(max);
 		}
 
-		return max_bidding;
+		return max_spending;
 	};
 
 	setMaxBidding();
@@ -157,7 +160,16 @@ var service_fee = parseInt(5);
 	 */
 	let _exceedsMaxBidding = function(amount){
 
-		return amount > max_bidding;
+		return (amount + service_fee) > max_spending;
+	};
+
+	/**
+	 * Returns the bidding increment.
+	 * @returns {Number}
+	 */
+	let getBiddingIncrement = function(){
+
+		return bidding_increment;
 	};
 
 	/**
@@ -166,8 +178,7 @@ var service_fee = parseInt(5);
 	 */
 	let _getNewBidding = function(){
 
-		let highestBidding = _getHighestBidding();
-		let newBidding = highestBidding + bidding_increment;
+		let newBidding = _getHighestBidding() + getBiddingIncrement();
 
 		/*
 		Smart bidding.
@@ -197,17 +208,20 @@ var service_fee = parseInt(5);
 	 * Note that this function does not actually push the button to persist your bid.
 	 *
 	 * @param {int} [amount] - Defaults to next smallest, but 'smart', increment
+	 * @returns {int}
 	 * @private
 	 */
 	let _raise = function(amount){
 
 		let newBidding = amount || _getNewBidding();
 
-		if(parseInt(document.getElementById('jsActiveBidInput').value) !== newBidding){
+		if(cur_bidding !== newBidding){
 
 			console.log(`Raise € ${newBidding}`);
-			document.getElementById('jsActiveBidInput').value = newBidding;
+			cur_bidding = newBidding;
 		}
+
+		return newBidding;
 	};
 
 	/**
@@ -216,7 +230,7 @@ var service_fee = parseInt(5);
 	 */
 	let bid = function(amount){
 
-		_raise(amount);
+		document.getElementById('jsActiveBidInput').value = _raise(amount);
 
 		if(_isUserHighestBidder(username)){
 
@@ -272,7 +286,7 @@ var service_fee = parseInt(5);
 			throw new Error('Bidding expired');
 		}
 
-		document.title = `${_getHighestBidding()}/${max_bidding} ${timeRemaining}; ${doc_title}`;
+		document.title = `${_getHighestBidding()}/${max_spending - service_fee} ${timeRemaining}; ${doc_title}`;
 
 		_raise();
 
