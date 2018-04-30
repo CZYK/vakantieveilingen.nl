@@ -118,7 +118,7 @@ var service_fee = parseInt(5);
 		let mm = times[1].innerText;
 		let ss = times[2].innerText;
 
-		return `${hh}${mm}${ss}`;
+		return `${hh}:${mm}:${ss}`;
 	};
 
 	/**
