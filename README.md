@@ -6,7 +6,7 @@ This is just a hobby project.
 ```javascript
 javascript: (function() {
     var a = document.createElement("script");
-    a.src = "//rawgithub.com/CZYK/vakantieveilingen.nl/master/bid.js";
+    a.src = "//rawgithub.com/CZYK/vakantieveilingen.nl/master/bid.js?time=" + (Date.now());
     document.getElementsByTagName("head")[0].appendChild(a)
 })();
 ```
