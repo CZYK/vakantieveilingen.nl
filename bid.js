@@ -169,6 +169,12 @@ var service_fee = parseInt(5);
 		return max_spending - service_fee;
 	};
 
+	let _random = function(start, end){
+
+		let length = end - start;
+		return Math.ceil(Math.random() * length) + start;
+	};
+
 	/**
 	 * Returns the bidding increment.
 	 * @returns {Number}
@@ -176,28 +182,21 @@ var service_fee = parseInt(5);
 	 */
 	let _getBiddingIncrement = function(){
 
-		let inc;
+		let highest_bidding = _getHighestBidding();
 
-		// Take 5 percent of what you want to spend as an inc.
-		inc = Math.ceil(_getHighestBidding() * 0.05);
+		if(highest_bidding > 100){
 
-		// Grab the nearest 5
-		inc = Math.floor(inc/5)*5;
-
-		// Increment should be minimum 1
-		if(inc < 1){
-
-			inc = 1;
+			return _random(4, 6);
 		}
 
-		// Are we close to the max bidding? Just Increment with the max
-		let max_increment = _getMaxBidding() - _getHighestBidding();
-		if(inc > max_increment){
+		if(highest_bidding > 50){
 
-			inc = max_increment;
+			// Random between 2 and 4.
+			return _random(2, 4);
 		}
 
-		return inc;
+		// default increment.
+		return _random(1, 2);
 	};
 
 	/**
