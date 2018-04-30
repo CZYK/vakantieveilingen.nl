@@ -11,16 +11,6 @@ localStorage.setItem('username', username);
 
 var max_spending = localStorage.getItem('max') || 10;
 
-var min_bidding = localStorage.getItem('min') || 0;
-min_bidding = window.prompt('What is your opening bid?', `${min_bidding}`) || min_bidding;
-localStorage.setItem('min', min_bidding);
-min_bidding = parseInt(min_bidding);
-
-if(min_bidding > max_spending){
-
-	throw new Error('Your opening bid cannot be more then your maximum bid.');
-}
-
 var service_fee = parseInt(5);
 
 // TODO: Bid fully automated based on a list of urls and settings.
@@ -230,7 +220,7 @@ var service_fee = parseInt(5);
 
 		if(_exceedsMaxBidding(newBidding)){
 
-			throw new Error('Max bidding exceeded');
+			newBidding = _getMaxBidding();
 		}
 
 		return newBidding;
@@ -321,7 +311,12 @@ var service_fee = parseInt(5);
 			throw new Error('Bidding expired');
 		}
 
-		document.title = `${_getNexSmartBid()}/${max_spending - service_fee} ${timeRemaining}; ${doc_title}`;
+		if(_getHighestBidding() >= _getMaxBidding()){
+
+			throw new Error('Max bidding exceeded');
+		}
+
+		document.title = `${_getNexSmartBid()}/${_getMaxBidding()} ${timeRemaining}; ${doc_title}`;
 
 		_raise();
 
@@ -332,12 +327,6 @@ var service_fee = parseInt(5);
 
 		setTimeout(_execute, 0.6 * 1000);
 	};
-
-	if(min_bidding > _getHighestBidding()){
-
-		// Do an opening bid.
-		bid(min_bidding);
-	}
 
 	_execute();
 
