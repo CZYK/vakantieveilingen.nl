@@ -109,16 +109,23 @@ var service_fee = parseInt(5);
 	 */
 	let _getRemainingTime = function(){
 
-		let times = document.querySelectorAll('#biddingBlock .jsDisplayedTimeValue .time-value');
-		if(!times){
+		let remainingSeconds = document.querySelector('.timer-countdown-label');
+		if(remainingSeconds){
 
-			return 0;
+			return `00:00:${remainingSeconds.innerText}`;
 		}
-		let hh = times[0].innerText;
-		let mm = times[1].innerText;
-		let ss = times[2].innerText;
 
-		return `${hh}:${mm}:${ss}`;
+		let times = document.querySelectorAll('#biddingBlock .jsDisplayedTimeValue .time-value');
+		if(times){
+
+			let hh = times[0].innerText;
+			let mm = times[1].innerText;
+			let ss = times[2].innerText;
+
+			return `${hh}:${mm}:${ss}`;
+		}
+
+		return 0;
 	};
 
 	/**
